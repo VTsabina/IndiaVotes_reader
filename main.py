@@ -4,36 +4,43 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from constants import driver_path
+from constants import driver_path, lok_sabha_num, state_codes, url
 
-chrome_options = Options()
-chrome_options.add_argument("--log-level=3")  # 0=все, 3=ошибки только
+def main():
+    year = 0
+    while year < 1947 or year > 2024:
+        year = int(input('Enter year: '))
+    state_list = input('Enter states (sep by comma): ').split(', ')
 
-service = Service(executable_path=driver_path)
+    chrome_options = Options()
+    chrome_options.add_argument("--log-level=3")  # 0=все, 3=ошибки только
 
-driver = webdriver.Chrome(service=service, options=chrome_options)
+    service = Service(executable_path=driver_path)
 
-try:
-    url = 'https://www.indiavotes.com/alliance/partyWise/18/1'
-    driver.get(url)
+    for state in state_list:
+        try:
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            # url = 'https://www.indiavotes.com/alliance/partyWise/18/1'
+            addr = f'{url}/{lok_sabha_num[year]}/{state_codes[state]}'
+            driver.get(addr)
 
-    wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 20)
 
-    chart_div = wait.until(
-        EC.presence_of_element_located((By.ID, 'charttable_alliance'))
-    )
+            chart_div = wait.until(
+                EC.presence_of_element_located((By.ID, 'charttable_alliance'))
+            )
 
-    table = chart_div.find_element(By.CLASS_NAME, 'grid')
+            table = chart_div.find_element(By.CLASS_NAME, 'grid')
 
-    rows = table.find_elements(By.TAG_NAME, 'tr')
+            rows = table.find_elements(By.TAG_NAME, 'tr')
+            print(state)
+            for row in rows:
+                cells = row.find_elements(By.TAG_NAME, 'td') or row.find_elements(By.TAG_NAME, 'th')
+                row_texts = [cell.text for cell in cells]
+                print(row_texts)
 
-    for row in rows:
-        cells = row.find_elements(By.TAG_NAME, 'td') or row.find_elements(By.TAG_NAME, 'th')
-        row_texts = [cell.text for cell in cells]
-        print(row_texts)
-
-finally:
-    driver.quit()
+        finally:
+            driver.quit()
 
 
 # from bs4 import BeautifulSoup
@@ -61,5 +68,5 @@ finally:
 #     # print(bs)
 
 
-# if __name__ == '__main__':
-#     parser()
+if __name__ == '__main__':
+    main()
