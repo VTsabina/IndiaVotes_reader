@@ -1,15 +1,17 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from constants import driver_path
 
-# Создаем сервис
+chrome_options = Options()
+chrome_options.add_argument("--log-level=3")  # 0=все, 3=ошибки только
+
 service = Service(executable_path=driver_path)
 
-# Инициализация драйвера с помощью сервиса
-driver = webdriver.Chrome(service=service)
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 try:
     url = 'https://www.indiavotes.com/alliance/partyWise/18/1'
@@ -17,18 +19,14 @@ try:
 
     wait = WebDriverWait(driver, 20)
 
-    # Ждем появления блока с таблицей по ID
     chart_div = wait.until(
         EC.presence_of_element_located((By.ID, 'charttable_alliance'))
     )
 
-    # Внутри этого блока ищем таблицу по классу 'grid'
     table = chart_div.find_element(By.CLASS_NAME, 'grid')
 
-    # Можно получить все строки таблицы
     rows = table.find_elements(By.TAG_NAME, 'tr')
 
-    # Выведем содержимое каждой строки
     for row in rows:
         cells = row.find_elements(By.TAG_NAME, 'td') or row.find_elements(By.TAG_NAME, 'th')
         row_texts = [cell.text for cell in cells]
@@ -36,6 +34,7 @@ try:
 
 finally:
     driver.quit()
+
 
 # from bs4 import BeautifulSoup
 # import requests
